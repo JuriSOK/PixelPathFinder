@@ -75,3 +75,53 @@ class Graphe:
         """
         arete = Arete(source, destination, poids)
         self.liste_sommet[source].ajouter_voisin(arete)
+
+
+    def dijkstra(self,start,end):
+
+        """
+        Méthode implémentant l'algorithme de Dijkstra.
+        
+        :param start: Le numéro du sommet de départ.
+        :param end: Le numéro du sommet d'arrivée
+        :return: Une liste des sommets formant le plus court chemin en terme de poids.
+        """
+        self.liste_sommet[start].timeFromSource = 0
+
+        to_visit = {sommet.num for sommet in self.liste_sommet}
+
+    
+        while end in to_visit:
+
+            min_v = -1
+            min_distance = float('inf')
+
+            for v in to_visit:
+                if self.liste_sommet[v].timeFromSource < min_distance:
+                    min_distance =  self.liste_sommet[v].timeFromSource
+                    min_v = v
+
+            to_visit.remove(min_v)
+
+            for arete in self.liste_sommet[min_v].liste_adj:
+
+                to_try = arete.destination
+                poids = arete.poids
+                nouveau_temps = self.liste_sommet[min_v].timeFromSource + poids
+
+                if nouveau_temps < self.liste_sommet[to_try].timeFromSource:
+                    self.liste_sommet[to_try].timeFromSource = nouveau_temps
+                    self.liste_sommet[to_try].prev = self.liste_sommet[min_v]
+
+
+        chemin = []
+        current = self.liste_sommet[end]
+        while current is not None :
+            chemin.insert(0,current.num)
+            current = current.prev
+
+        return chemin
+
+
+
+       
