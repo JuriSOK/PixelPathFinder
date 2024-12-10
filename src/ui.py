@@ -1,16 +1,27 @@
 from PIL import Image, ImageTk
 import tkinter as tk
+from tkinter import messagebox
+import time 
 
 def afficher_chemin(image_path, chemin, sommet_depart, sommet_arrivee, largeur, hauteur):
     """
-    Affiche l'image avec les points de départ et d'arrivée en rouge, et le chemin en bleu.
+    La fonction permet d'afficher l'image choisit, avec les pixels de départ et d'arrivée coloriés en vert
+    et le chemin le plus court (au sens de Dijkstra) en rouge.
+
+    :param image_path: Le chemin de l'image
+    :param chemin: La liste des sommets représentant les sommets du chemin à suivre (Donnée par Dijkstra)
+    :param sommet_depart: Le sommet de départ 
+    :param sommet_arrivee: Le sommet d'arrivée
+    :param largeur: La largeur de l'image (nombre de pixels par ligne)
+    :param hauteur: La hauteur de l'image (nombre de pixels par colonne)
     """
+ 
     # Configuration de la fenêtre
     root = tk.Tk()
-    root.title("Chemin le plus court")
+    root.title("PixelPathFinder - MiniProjet Algo: Scénario 2")
     canvas = tk.Canvas(root, width=largeur, height=hauteur)
     canvas.pack()
-
+    
     # Charger l'image d'origine
     img = Image.open(image_path)
     photo = ImageTk.PhotoImage(img)
