@@ -1,3 +1,5 @@
+import heapq
+
 class Arete:
     """
     Classe représentant une arête dans un graphe.
@@ -84,24 +86,25 @@ class Graphe:
         
         :param start: Le numéro du sommet de départ.
         :param end: Le numéro du sommet d'arrivée
-        :return: Une liste des sommets formant le plus court chemin en terme de poids.
+        :return: Une liste des sommets formant le plus court chemin en terme de poids et le nombre de sommets visités.
         """
         self.liste_sommet[start].timeFromSource = 0
+        number_tries = 0
 
-        to_visit = {sommet.num for sommet in self.liste_sommet}
-
+        to_visit = [(0, start)]
+        visited  = set()
     
-        while end in to_visit:
+        while to_visit:
 
-            min_v = -1
-            min_distance = float('inf')
+            min_distance, min_v = heapq.heappop(to_visit)
 
-            for v in to_visit:
-                if self.liste_sommet[v].timeFromSource < min_distance:
-                    min_distance =  self.liste_sommet[v].timeFromSource
-                    min_v = v
+            if min_v in visited:
+                continue
+            visited.add(min_v)
+            number_tries += 1
 
-            to_visit.remove(min_v)
+            if min_v == end:
+                break  
 
             for arete in self.liste_sommet[min_v].liste_adj:
 
@@ -112,6 +115,7 @@ class Graphe:
                 if nouveau_temps < self.liste_sommet[to_try].timeFromSource:
                     self.liste_sommet[to_try].timeFromSource = nouveau_temps
                     self.liste_sommet[to_try].prev = self.liste_sommet[min_v]
+                    heapq.heappush(to_visit, (nouveau_temps, to_try))
 
 
         chemin = []
@@ -120,7 +124,7 @@ class Graphe:
             chemin.insert(0,current.num)
             current = current.prev
 
-        return chemin
+        return chemin, number_tries
 
 
 
