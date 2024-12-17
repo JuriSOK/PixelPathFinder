@@ -37,6 +37,7 @@ class Sommet:
         self.prev = None  
         self.liste_adj = []  
         self.num = num  
+        self.heuristique = None
 
     def ajouter_voisin(self, arete):
         """
@@ -87,7 +88,7 @@ class Graphe:
         
         :param start: Le numéro du sommet de départ.
         :param end: Le numéro du sommet d'arrivée
-        :return: Une liste des sommets formant le plus court chemin en terme de poids et le nombre de sommets visités.
+        :return: Une liste des sommets formant le plus court chemin en terme de poids,le nombre de sommets visités et le poids total du chemin.
         """
         self.liste_sommet[start].timeFromSource = 0
         number_tries = 0
@@ -119,13 +120,14 @@ class Graphe:
                     heapq.heappush(to_visit, (nouveau_temps, to_try))
 
 
+        poids_total = self.liste_sommet[end].timeFromSource
         chemin = []
         current = self.liste_sommet[end]
         while current is not None :
             chemin.insert(0,current.num)
             current = current.prev
 
-        return chemin, number_tries
+        return chemin, number_tries, poids_total
     
 
     #A corriger
@@ -137,60 +139,59 @@ class Graphe:
         :param end: Le sommet d'arrivée.
         :param heuristique_type: Le type d'heuristique à utiliser ("Manhattan" ou "Euclidienne").
         :param ncols: Le nombre de colonnes (utilisé pour calculer les heuristiques).
-        :return: Le chemin trouvé et le nombre de sommets visités.
+        :return: Le chemin trouvée, le nombre de sommets visités et le poids total du chemin.
         """
-        # Initialisation des coûts g et h
-        for sommet in self.liste_sommet:
-            sommet.timeFromSource = float('inf')  # g(n), coût du début au sommet
-        self.liste_sommet[start].timeFromSource = 0  # g(start) = 0
 
-        # Initialisation de la file de priorité (open set)
-        to_visit = [(0, start)]  # Contient des tuples (f_score, sommet)
-        visited = set()  # Ensemble des sommets visités
-        number_tries = 0  # Nombre de sommets visités
+        self.liste_sommet[start].timeFromSource = 0
+        number_tries = 0
+
+        for sommet in self.liste_sommet: 
+            if heuristique_type == 'manhattan':
+                sommet.heuristique = self.heuristique_manhattan(sommet.num, end, ncols)
+            elif heuristique_type == 'euclidienne':
+                sommet.heuristique = self.heuristique_euclidienne(sommet.num, end, ncols)
+
+
+        to_visit = [(self.liste_sommet[start].timeFromSource + self.liste_sommet[start].heuristique, start)]
+        visited = set()
 
         while to_visit:
-            # On prend le sommet avec le f_score le plus bas
+    
             min_distance, min_v = heapq.heappop(to_visit)
 
             if min_v in visited:
                 continue
+
             visited.add(min_v)
             number_tries += 1
 
             if min_v == end:
-                break  # On a atteint le sommet final
+                break
 
-            # Exploration des voisins du sommet actuel
             for arete in self.liste_sommet[min_v].liste_adj:
                 to_try = arete.destination
-                tentative_g_score = self.liste_sommet[min_v].timeFromSource + arete.poids
+                poids = arete.poids
+                gn = self.liste_sommet[min_v].timeFromSource + poids
 
-                # Calcul de l'heuristique en fonction du type choisi
-                if heuristique_type == 'manhattan':
-                    h_score = self.heuristique_manhattan(to_try, end, ncols)
-                elif heuristique_type == 'euclidienne':
-                    h_score = self.heuristique_euclidienne(to_try, end, ncols)
-
-                # Calcul de f(n) = g(n) + h(n)
-                f_score = tentative_g_score + h_score
-
-                # Si on trouve un meilleur chemin pour atteindre le voisin
-                if tentative_g_score < self.liste_sommet[to_try].timeFromSource:
-                    self.liste_sommet[to_try].timeFromSource = tentative_g_score
+                if gn < self.liste_sommet[to_try].timeFromSource:
+                    self.liste_sommet[to_try].timeFromSource = gn
                     self.liste_sommet[to_try].prev = self.liste_sommet[min_v]
+                    fn = gn + self.liste_sommet[to_try].heuristique
+                    heapq.heappush(to_visit, (fn, to_try))
+                
+            
 
-                    # Ajout du voisin à la file de priorité avec son f_score
-                    heapq.heappush(to_visit, (f_score, to_try))
-
-        # Reconstruction du chemin à partir de l'arrivée
+        poids_total = self.liste_sommet[end].timeFromSource
         chemin = []
         current = self.liste_sommet[end]
-        while current is not None:
-            chemin.insert(0, current.num)
+        while current is not None :
+            chemin.insert(0,current.num)
             current = current.prev
 
-        return chemin, number_tries
+        return chemin, number_tries, poids_total
+    
+
+        
 
     def heuristique_manhattan(self, start, end, ncols):
         """

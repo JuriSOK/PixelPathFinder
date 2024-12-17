@@ -6,6 +6,11 @@ import time
 from img_manager import load_image, image_to_graphe
 from graph import Graphe
 
+import tkinter as tk
+from tkinter import filedialog, messagebox
+from PIL import Image, ImageTk
+import time
+
 class PixelPathFinderApp:
     def __init__(self):
         self.image_path = None
@@ -67,6 +72,19 @@ class PixelPathFinderApp:
         self.end_y_entry.pack(side=tk.LEFT, padx=5)
         tk.Button(self.menu_frame, text="Définir arrivée", command=self.set_end_point).pack(pady=5)
 
+        # Choix de l'algorithme
+        tk.Label(self.menu_frame, text="Choisir l'algorithme:", bg="lightgray").pack(pady=10)
+        self.algorithm_var = tk.StringVar(value="dijkstra")
+        self.algorithm_menu = tk.OptionMenu(self.menu_frame, self.algorithm_var, "dijkstra", "astar", command=self.update_heuristic_state)
+        self.algorithm_menu.pack(pady=5)
+
+        # Choix de l'heuristique (seulement pour A*)
+        tk.Label(self.menu_frame, text="Choisir l'heuristique (pour A*):", bg="lightgray").pack(pady=10)
+        self.heuristic_var = tk.StringVar(value="manhattan")
+        self.heuristic_menu = tk.OptionMenu(self.menu_frame, self.heuristic_var, "manhattan", "euclidienne")
+        self.heuristic_menu.pack(pady=5)
+        self.heuristic_menu.config(state=tk.DISABLED)  # Par défaut, désactivé
+
         # Bouton pour générer le chemin
         tk.Button(self.menu_frame, text="Générer le chemin", command=self.calculate_and_draw_path).pack(pady=20)
 
@@ -78,11 +96,22 @@ class PixelPathFinderApp:
         self.visited_label = tk.Label(self.menu_frame, text="Sommets visités: 0", bg="lightgray")
         self.visited_label.pack(pady=10)
 
+        # Nouveau label pour afficher le poids total
+        self.total_weight_label = tk.Label(self.menu_frame, text="Poids total: 0.00", bg="lightgray")
+        self.total_weight_label.pack(pady=10)
+
         # Bouton pour nettoyer l'image
         tk.Button(self.menu_frame, text="Nettoyer l'image", command=self.clear_canvas).pack(pady=10)
 
         # Bouton pour réinitialiser les points de départ et d'arrivée
         tk.Button(self.menu_frame, text="Réinitialiser points", command=self.reset_points).pack(pady=10)
+
+    def update_heuristic_state(self, selected_algorithm):
+        """Active ou désactive le menu heuristique en fonction de l'algorithme choisi."""
+        if selected_algorithm == "astar":
+            self.heuristic_menu.config(state=tk.NORMAL)  # Activer le menu heuristique
+        else:
+            self.heuristic_menu.config(state=tk.DISABLED)  # Désactiver le menu heuristique
 
     def load_image(self):
         """Charge l'image et gère le graphe."""
@@ -158,10 +187,14 @@ class PixelPathFinderApp:
 
         start_time = time.time()
 
-        # Utiliser l'algorithme de Dijkstra pour trouver le chemin
-        chemin, number_tries = self.graphe.dijkstra(self.sommet_depart, self.sommet_arrivee)
+        algorithm = self.algorithm_var.get()
+        if algorithm == "dijkstra":
+            chemin, number_tries, poids_total = self.graphe.dijkstra(self.sommet_depart, self.sommet_arrivee)
+        elif algorithm == "astar":
+            heuristique = self.heuristic_var.get()
+            chemin, number_tries, poids_total = self.graphe.astar(self.sommet_depart, self.sommet_arrivee, heuristique_type=heuristique, ncols=self.largeur)
 
-         # Dessiner le chemin petit à petit
+        # Dessiner le chemin petit à petit
         for i, sommet in enumerate(chemin):
             x = sommet % self.largeur
             y = sommet // self.largeur
@@ -174,13 +207,13 @@ class PixelPathFinderApp:
             self.canvas.update()  # Met à jour le canevas
             time.sleep(0.01)  # Petite pause pour voir l'animation
 
-          
-        # Calcul du temps d'exécution
+        # Calcul du temps d'exécution 
         execution_time = time.time() - start_time
         self.execution_time_label.config(text=f"Temps: {execution_time:.2f}s")
 
-        # Afficher le nombre de sommets visités
+        # Afficher le nombre de sommets visitésc et le poids total 
         self.visited_label.config(text=f"Sommets visités: {number_tries}")
+        self.total_weight_label.config(text=f"Poids total: {poids_total:.2f}")
 
         print(f"Chemin trouvé en {execution_time:.2f} secondes avec {number_tries} sommets visités.")
 
@@ -188,8 +221,6 @@ class PixelPathFinderApp:
         """Met en évidence un pixel avec une taille plus visible."""
         size = 1  # Taille du carré pour une meilleure visibilité
         self.canvas.create_rectangle(x, y, x + size, y + size, fill=color, outline=color, tags=tag)
-
-
 
     def clear_canvas(self):
         """Nettoie l'image et réinitialise les paramètres."""
