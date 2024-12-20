@@ -188,6 +188,7 @@ class Graphe:
             chemin.insert(0,current.num)
             current = current.prev
 
+
         return chemin, number_tries, poids_total
     
 

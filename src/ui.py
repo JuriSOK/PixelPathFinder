@@ -17,8 +17,8 @@ class PixelPathFinderApp:
         self.image = None
         self.largeur, self.hauteur = None, None
         self.pixels = None
+        
         self.graphe = None
-
         self.sommet_depart = None
         self.sommet_arrivee = None
 
@@ -153,7 +153,10 @@ class PixelPathFinderApp:
 
         if 0 <= x < self.largeur and 0 <= y < self.hauteur:  # Vérifier si les coordonnées sont dans l'image
             self.sommet_depart = y * self.largeur + x
-            self.highlight_pixel(x, y, "green", "start")
+            size = 3
+            self.canvas.create_oval(x,y,x + size, y + size,fill="green", outline="green",tags="start")
+            
+            
         else:
             messagebox.showerror("Erreur", "Coordonnées hors limites pour le point de départ.")
 
@@ -175,7 +178,8 @@ class PixelPathFinderApp:
 
         if 0 <= x < self.largeur and 0 <= y < self.hauteur:  # Vérifier si les coordonnées sont dans l'image
             self.sommet_arrivee = y * self.largeur + x
-            self.highlight_pixel(x, y, "red", "end")
+            size = 3
+            self.canvas.create_oval(x,y,x + size, y + size,fill="green", outline="green",tags="end")
         else:
             messagebox.showerror("Erreur", "Coordonnées hors limites pour le point d'arrivée.")
 
@@ -187,15 +191,15 @@ class PixelPathFinderApp:
 
         start_time = time.time()
 
-        algorithm = self.algorithm_var.get()
-        if algorithm == "dijkstra":
+        algorithme = self.algorithm_var.get()
+        if algorithme == "dijkstra":
             chemin, number_tries, poids_total = self.graphe.dijkstra(self.sommet_depart, self.sommet_arrivee)
-        elif algorithm == "astar":
+        elif algorithme == "astar":
             heuristique = self.heuristic_var.get()
             chemin, number_tries, poids_total = self.graphe.astar(self.sommet_depart, self.sommet_arrivee, heuristique_type=heuristique, ncols=self.largeur)
 
         # Dessiner le chemin petit à petit
-        for i, sommet in enumerate(chemin):
+        for sommet in chemin:
             x = sommet % self.largeur
             y = sommet // self.largeur
 
@@ -216,11 +220,6 @@ class PixelPathFinderApp:
         self.total_weight_label.config(text=f"Poids total: {poids_total:.2f}")
 
         print(f"Chemin trouvé en {execution_time:.2f} secondes avec {number_tries} sommets visités.")
-
-    def highlight_pixel(self, x, y, color, tag):
-        """Met en évidence un pixel avec une taille plus visible."""
-        size = 1  # Taille du carré pour une meilleure visibilité
-        self.canvas.create_rectangle(x, y, x + size, y + size, fill=color, outline=color, tags=tag)
 
     def clear_canvas(self):
         """Nettoie l'image et réinitialise les paramètres."""
