@@ -1,13 +1,13 @@
 # PixelPathFinder
 
-PixelPathFinder est une application interactive utilisant des algorithmes de graphes pour trouver le chemin le plus court entre deux points sur une image. Ce projet a été conçu dans le cadre d'un mini-projet en Algorithmique (L3).
+PixelPathFinder est une application interactive utilisant des algorithmes de graphes pour trouver le chemin le plus court entre deux points sur une image. Ce projet a été conçu dans le cadre d'un mini-projet en Algorithmique Avancée (L3 à l'université Paris-Cité).
 
 ---
 
 ## Fonctionnalités principales
 
-- Chargement d'images et transformation en graphes pondérés.
-- Visualisation interactive des points de départ et d'arrivée sur une image.
+- Chargement d'images et transformation en graphes avec des arêtes valuées.
+- Visualisation des points de départ et d'arrivée sur une image.
 - Génération de chemins les plus courts à l'aide des algorithmes **Dijkstra** et **A***.
 - Prise en charge des heuristiques pour A* :
   - Manhattan.
