@@ -53,7 +53,7 @@ PixelPathFinder est une application interactive utilisant des algorithmes de gra
 
 ---
 
-## Installation et exécution
+## Installation
 
 ### Prérequis
 
